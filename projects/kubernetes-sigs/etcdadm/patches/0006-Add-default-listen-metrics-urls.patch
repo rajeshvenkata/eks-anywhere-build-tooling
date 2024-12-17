@@ -1,0 +1,70 @@
+From 838bf7fe1ef89e7eca5cae8bea5f0e37ed5b7336 Mon Sep 17 00:00:00 2001
+From: Rajesh Putta Venkata <nrajesv@amazon.com>
+Date: Tue, 17 Dec 2024 14:48:54 -0800
+Subject: [PATCH] Add default listen metrics urls
+
+---
+ apis/config.go         | 20 +++++++++++++++++++-
+ constants/constants.go |  1 +
+ 2 files changed, 20 insertions(+), 1 deletion(-)
+
+diff --git a/apis/config.go b/apis/config.go
+index 15fad4b8..af838070 100644
+--- a/apis/config.go
++++ b/apis/config.go
+@@ -109,7 +109,7 @@ type EtcdAdmConfig struct {
+ 	// EnableV2 configures whether the V2 client handler is configured, mapping to the --enable-v2 flag
+ 	// This is a bool, but we use a string because the default value changes across versions.
+ 	EnableV2 string
+-	
++
+ 	Endpoints []string
+ 
+ 	// CipherSuites is a list of supported TLS cipher suites, mapping to the --cipher-suites flag.
+@@ -253,6 +253,9 @@ func setDynamicDefaults(cfg *EtcdAdmConfig) error {
+ 	if err := DefaultClientURLs(cfg); err != nil {
+ 		return err
+ 	}
++	if err := DefaultListenMetricsURLs(cfg); err != nil {
++		return err
++	}
+ 	DefaultPeerCertSANs(cfg)
+ 	DefaultServerCertSANs(cfg)
+ 	return nil
+@@ -320,6 +323,21 @@ func DefaultInitialAdvertisePeerURLs(cfg *EtcdAdmConfig) error {
+ 	return nil
+ }
+ 
++// DefaultListenMetricsURLs Adds default URLs to listen on that will respond to the /metrics
++func DefaultListenMetricsURLs(cfg *EtcdAdmConfig) error {
++	externalAddress, err := ensureValidExternalAddress(cfg.BindAddr)
++	if err != nil {
++		return fmt.Errorf("failed to set default ListenMetricsURLs: %s", err)
++	}
++	cfg.ListenMetricsURLs = append(cfg.ListenMetricsURLs,
++		url.URL{
++			Scheme: "https",
++			Host:   fmt.Sprintf("%s:%d", externalAddress.String(), constants.DefaultMetricPort),
++		},
++	)
++	return nil
++}
++
+ // DefaultListenPeerURLs TODO: add description
+ func DefaultListenPeerURLs(cfg *EtcdAdmConfig) error {
+ 	cfg.ListenPeerURLs = cfg.InitialAdvertisePeerURLs
+diff --git a/constants/constants.go b/constants/constants.go
+index 5298dfdd..ad1baede 100644
+--- a/constants/constants.go
++++ b/constants/constants.go
+@@ -37,6 +37,7 @@ const (
+ 	DefaultLoopbackHost = "127.0.0.1"
+ 	DefaultPeerPort     = 2380
+ 	DefaultClientPort   = 2379
++	DefaultMetricPort   = 2381
+ 
+ 	DefaultDownloadConnectTimeout = 10 * time.Second
+ 	DefaultEtcdRequestTimeout     = 5 * time.Second
+-- 
+2.40.1
+

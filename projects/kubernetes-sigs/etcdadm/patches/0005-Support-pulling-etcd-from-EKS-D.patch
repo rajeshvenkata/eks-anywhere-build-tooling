@@ -1,7 +1,7 @@
-From 6a6de45f94484bc2c8dbf683676973e9188112f9 Mon Sep 17 00:00:00 2001
+From e90a24bd9b56acc25f6c92ad3c62e9aaa96861ed Mon Sep 17 00:00:00 2001
 From: Vignesh Goutham Ganesh <vgg@amazon.com>
 Date: Wed, 12 Jul 2023 11:03:41 -0500
-Subject: [PATCH] Support pulling etcd from EKS-D
+Subject: [PATCH 5/6] Support pulling etcd from EKS-D
 
 Signed-off-by: Vignesh Goutham Ganesh <vgg@amazon.com>
 ---
@@ -60,7 +60,7 @@ index ebecc2db..f28f060c 100644
  
  // InstallFromCache method installs the binaries from cache directory
 diff --git a/constants/constants.go b/constants/constants.go
-index 6f3ec911..f2d35a75 100644
+index 82bb4221..5298dfdd 100644
 --- a/constants/constants.go
 +++ b/constants/constants.go
 @@ -23,7 +23,7 @@ const (
@@ -73,5 +73,5 @@ index 6f3ec911..f2d35a75 100644
  	DefaultCertificateDir  = "/etc/etcd/pki"
  
 -- 
-2.37.1 (Apple Git-137.1)
+2.40.1
 
