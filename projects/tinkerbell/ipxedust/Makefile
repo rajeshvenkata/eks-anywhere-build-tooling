@@ -61,6 +61,18 @@ $(FAKE_BINARY_TARGETS):
 #   debugging symbols and other unncessary data is stripped out, making reproducibilty easier
 #   However the blib.a is not stripped so things like the build path will change the checksum and 
 #   therefore the build_id. We use -debug-prefix-map to reset the build folder
+# Special rule for ipxe.efi to include EMBED and CONFIG parameters
+$(OUTPUT_BIN_DIR)/linux-amd64/ipxe.efi: MAKEFLAGS=
+$(OUTPUT_BIN_DIR)/linux-amd64/ipxe.efi: $(GIT_PATCH_TARGET) | $$(call ENABLE_DOCKER_PLATFORM,$$(PLATFORM))
+	sudo yum install -y genisoimage perl syslinux xz-devel; \
+	mkdir -p $(@D); \
+	cp ipxe-config/boot.ipxe $(REPO)/; \
+	mkdir -p $(REPO)/src/config/; \
+	cp ipxe-config/custom.h $(REPO)/src/config/; \
+	$(MAKE) -C $(REPO) bin-x86_64-efi/ipxe.efi EMBED=boot.ipxe CONFIG=custom.h SOURCE_DATE_EPOCH=$(SOURCE_DATE_EPOCH) EXTRA_CFLAGS="-fdebug-prefix-map=$(MAKE_ROOT)=/buildroot"; \
+	cp $(REPO)/bin-x86_64-efi/ipxe.efi $@
+
+# Generic rule for other targets
 $(OUTPUT_BIN_DIR)/%: MAKEFLAGS=
 $(OUTPUT_BIN_DIR)/%: $(GIT_PATCH_TARGET) | $$(call ENABLE_DOCKER_PLATFORM,$$(PLATFORM))
 	sudo yum install -y genisoimage perl syslinux xz-devel; \

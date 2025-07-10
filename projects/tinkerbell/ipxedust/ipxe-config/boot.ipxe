@@ -1,0 +1,61 @@
+#!ipxe
+# This is the iPXE shebang line that identifies this as an iPXE script
+
+# Robust interface opening mechanism
+:retry_open
+# This label marks the start of the network interface opening section
+echo Opening network interface...
+# Display a message indicating we're trying to open the network interface
+ifopen net0 || goto retry_open
+# Try to open the first network interface (net0)
+# If it fails (||), go back to the retry_open label and try again
+
+# Enhanced link detection
+:retry_link
+# This label marks the start of the link detection section
+echo Waiting for link...
+# Display a message indicating we're waiting for a network link
+ifstat net0 && isset net0/link || goto retry_link
+# Check if the interface has a link:
+# - ifstat net0: Get the status of net0
+# - isset net0/link: Check if the link variable is set
+# If either check fails (||), go back to retry_link and try again
+sleep 2
+# Wait 2 seconds to ensure the link is stable
+
+# Reliable DHCP configuration
+:retry_dhcp
+# This label marks the start of the DHCP configuration section
+echo Requesting IP configuration...
+# Display a message indicating we're requesting an IP address
+dhcp net0 || goto retry_dhcp
+# Try to get an IP address via DHCP for net0
+# If it fails (||), go back to retry_dhcp and try again
+
+# Success confirmation
+echo Network configured successfully: ${net0/ip}
+# Display a success message with the obtained IP address
+
+# For Kubernetes bare metal provisioning
+# This section loads a kernel and initrd for provisioning a Kubernetes node
+
+echo Loading provisioning kernel and initrd...
+# Display a message indicating we're loading the kernel and initrd
+
+# The kernel command downloads and loads the Linux kernel
+# Replace the URL with your actual kernel location
+kernel http://provisioning-server/path/to/kernel \
+  # The kernel URL - replace with your actual kernel location
+  initrd=initrd.img \
+  # Tells the kernel where to find the initrd
+  console=tty0 console=ttyS0,115200 \
+  # Sets up console output on both video display and serial port
+  ip=dhcp
+  # Configures the kernel to use DHCP for network configuration
+
+# The initrd command downloads the initial RAM disk
+# Replace the URL with your actual initrd location
+initrd http://provisioning-server/path/to/initrd.img
+
+# The boot command starts execution of the downloaded kernel and initrd
+boot
